@@ -4,6 +4,8 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { renderMarkdown } from "@/lib/markdown";
+import { sendEmail } from "@/lib/email";
+import { env } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -61,6 +63,10 @@ export async function POST(
     )
     .get(id) as PostRow;
 
+  sendNotificationEmails(row).catch((err) => {
+    console.error("[shipnote] failed to send notification emails:", err);
+  });
+
   return NextResponse.json({
     id: row.id,
     title: row.title,
@@ -73,4 +79,48 @@ export async function POST(
     created_at: row.created_at,
     updated_at: row.updated_at,
   });
+}
+
+async function sendNotificationEmails(post: PostRow) {
+  if (!env.EMAIL_API_KEY) return;
+
+  const db = getDb();
+  const subscribers = db
+    .prepare("SELECT email, unsubscribe_token FROM subscribers WHERE confirmed = 1")
+    .all() as Array<{ email: string; unsubscribe_token: string }>;
+
+  if (subscribers.length === 0) return;
+
+  const postUrl = `${env.BASE_URL}/changelog/${post.slug}`;
+
+  for (const sub of subscribers) {
+    const unsubUrl = `${env.BASE_URL}/api/unsubscribe/${sub.unsubscribe_token}`;
+    await sendEmail({
+      to: sub.email,
+      subject: post.title,
+      html: `
+        <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto; padding: 24px;">
+          <h1 style="font-size: 22px; margin-bottom: 8px;">${escapeHtml(post.title)}</h1>
+          ${
+            post.category_name
+              ? `<span style="display:inline-block;padding:2px 10px;border-radius:9999px;font-size:12px;font-weight:600;color:white;background:${post.category_color ?? "#6b7280"}">${escapeHtml(post.category_name)}</span>`
+              : ""
+          }
+          <div style="margin-top: 16px; line-height: 1.6; color: #3f3f46;">${post.body_html}</div>
+          <hr style="margin: 24px 0; border: none; border-top: 1px solid #e4e4e7;" />
+          <p style="font-size: 12px; color: #a1a1aa;">
+            <a href="${unsubUrl}" style="color: #a1a1aa;">Unsubscribe</a>
+          </p>
+        </div>
+      `,
+    });
+  }
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }

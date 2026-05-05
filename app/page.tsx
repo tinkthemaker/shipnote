@@ -14,7 +14,7 @@ function formatDate(ts: number): string {
 export default function HomePage({
   searchParams,
 }: {
-  searchParams: { category?: string };
+  searchParams: { category?: string; subscribed?: string };
 }) {
   const allPosts = getPublishedPosts();
   const categories = getCategories();
@@ -116,6 +116,40 @@ export default function HomePage({
           </article>
         ))}
       </div>
+
+      <section className="mt-16 rounded-lg border border-zinc-200 p-6 dark:border-zinc-800">
+        <h3 className="text-lg font-semibold">Stay updated</h3>
+        {searchParams.subscribed === "1" ? (
+          <p className="mt-2 text-sm text-green-600 dark:text-green-400">
+            Check your email to confirm your subscription.
+          </p>
+        ) : (
+          <>
+            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+              Get notified when we publish new updates.
+            </p>
+            <form
+              action="/api/subscribe"
+              method="POST"
+              className="mt-4 flex gap-2"
+            >
+              <input
+                type="email"
+                name="email"
+                required
+                placeholder="you@example.com"
+                className="flex-1 rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
+              />
+              <button
+                type="submit"
+                className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+              >
+                Subscribe
+              </button>
+            </form>
+          </>
+        )}
+      </section>
 
       <footer className="mt-16 border-t border-zinc-200 pt-6 text-center text-sm text-zinc-400 dark:border-zinc-800">
         Powered by Shipnote
