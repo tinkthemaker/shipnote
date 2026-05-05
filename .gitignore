@@ -29,3 +29,4 @@ Thumbs.db
 dist/
 build/
 .claude/
+.playwright-mcp/
