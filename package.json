@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@tailwindcss/typography": "^0.5.19",
     "@tiptap/extension-bold": "^3.22.5",
     "@tiptap/extension-bullet-list": "^3.22.5",
     "@tiptap/extension-code": "^3.22.5",
