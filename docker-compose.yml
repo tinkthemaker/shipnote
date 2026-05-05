@@ -1,0 +1,16 @@
+services:
+  shipnote:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - shipnote-data:/data
+    environment:
+      - SHIPNOTE_BASE_URL=http://localhost:3000
+      # SHIPNOTE_ADMIN_PASSWORD=    # unset = auto-generated on first boot
+      # SHIPNOTE_EMAIL_API_KEY=     # unset = emails logged to console
+      # SHIPNOTE_EMAIL_FROM=
+      # SHIPNOTE_MCP_TOKEN=         # unset = MCP server disabled
+
+volumes:
+  shipnote-data:
