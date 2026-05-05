@@ -6,14 +6,14 @@
 
 ## Slice progress
 
-- [ ] Slice 1 — Project scaffold + DB + admin login
-- [ ] Slice 2 — Admin post CRUD with TipTap
-- [ ] Slice 3 — Markdown rendering + public changelog page
-- [ ] Slice 4 — Permalinks, category filter, RSS feed
-- [ ] Slice 5 — Vanilla JS widget + /demo page
-- [ ] Slice 6 — Subscribers, double opt-in, publish-triggered email
-- [ ] Slice 7 — MCP server (SSE) with two tools
-- [ ] Slice 8 — Dockerfile + one-command run
+- [x] Slice 1 — Project scaffold + DB + admin login
+- [x] Slice 2 — Admin post CRUD with TipTap
+- [x] Slice 3 — Markdown rendering + public changelog page
+- [x] Slice 4 — Permalinks, category filter, RSS feed
+- [x] Slice 5 — Vanilla JS widget + /demo page
+- [x] Slice 6 — Subscribers, double opt-in, publish-triggered email
+- [x] Slice 7 — MCP server (SSE) with two tools
+- [x] Slice 8 — Dockerfile + one-command run
 
 ---
 

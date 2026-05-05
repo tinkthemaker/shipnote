@@ -28,5 +28,6 @@ Thumbs.db
 # Build artifacts
 dist/
 build/
+tsconfig.tsbuildinfo
 .claude/
 .playwright-mcp/
