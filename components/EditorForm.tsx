@@ -16,6 +16,7 @@ export function EditorForm({
   bodyMarkdown,
   saving,
   isNew,
+  contentKey,
   onTitleChange,
   onSlugChange,
   onCategoryIdChange,
@@ -30,6 +31,7 @@ export function EditorForm({
   bodyMarkdown: string;
   saving: boolean;
   isNew: boolean;
+  contentKey?: string;
   onTitleChange: (v: string) => void;
   onSlugChange: (v: string) => void;
   onCategoryIdChange: (v: string | null) => void;
@@ -95,7 +97,11 @@ export function EditorForm({
         ))}
       </select>
 
-      <PostEditor initialContent={bodyMarkdown} onChange={onBodyChange} />
+      <PostEditor
+        initialContent={bodyMarkdown}
+        contentKey={contentKey}
+        onChange={onBodyChange}
+      />
     </div>
   );
 }

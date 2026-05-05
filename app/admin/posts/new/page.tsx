@@ -54,6 +54,7 @@ export default function NewPostPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
+          slug,
           body_markdown: bodyMarkdown,
           category_id: categoryId,
         }),

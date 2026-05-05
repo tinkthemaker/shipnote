@@ -1,3 +1,4 @@
+// GET /api/admin/posts/[id] — fetch a single post
 // PUT /api/admin/posts/[id] — update a post
 // DELETE /api/admin/posts/[id] — delete a post
 
@@ -23,6 +24,45 @@ type PostRow = {
   category_color: string | null;
 };
 
+function formatPost(row: PostRow) {
+  return {
+    id: row.id,
+    title: row.title,
+    slug: row.slug,
+    body_markdown: row.body_markdown,
+    body_html: row.body_html,
+    category_id: row.category_id,
+    category_name: row.category_name,
+    category_color: row.category_color,
+    is_draft: Boolean(row.is_draft),
+    published_at: row.published_at,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  };
+}
+
+function fetchPost(db: ReturnType<typeof getDb>, id: string) {
+  return db
+    .prepare(
+      `SELECT p.*, c.name AS category_name, c.color AS category_color
+       FROM posts p LEFT JOIN categories c ON p.category_id = c.id
+       WHERE p.id = ?`
+    )
+    .get(id) as PostRow | undefined;
+}
+
+export async function GET(
+  _req: Request,
+  { params }: { params: { id: string } }
+) {
+  const db = getDb();
+  const row = fetchPost(db, params.id);
+  if (!row) {
+    return NextResponse.json({ error: "Post not found." }, { status: 404 });
+  }
+  return NextResponse.json(formatPost(row));
+}
+
 export async function PUT(
   req: Request,
   { params }: { params: { id: string } }
@@ -30,9 +70,7 @@ export async function PUT(
   const { id } = params;
   const db = getDb();
 
-  const existing = db
-    .prepare("SELECT id FROM posts WHERE id = ?")
-    .get(id) as { id: string } | undefined;
+  const existing = fetchPost(db, id);
   if (!existing) {
     return NextResponse.json({ error: "Post not found." }, { status: 404 });
   }
@@ -52,8 +90,20 @@ export async function PUT(
     values.push(body.title.trim());
   }
   if (body.slug !== undefined) {
+    const newSlug = body.slug.trim();
+    if (newSlug !== existing.slug) {
+      const collision = db
+        .prepare("SELECT id FROM posts WHERE slug = ? AND id != ?")
+        .get(newSlug, id);
+      if (collision) {
+        return NextResponse.json(
+          { error: "Slug is already in use by another post." },
+          { status: 409 }
+        );
+      }
+    }
     updates.push("slug = ?");
-    values.push(body.slug);
+    values.push(newSlug);
   }
   if (body.body_markdown !== undefined) {
     updates.push("body_markdown = ?");
@@ -67,7 +117,10 @@ export async function PUT(
   }
 
   if (updates.length === 0) {
-    return NextResponse.json({ error: "No fields to update." }, { status: 400 });
+    return NextResponse.json(
+      { error: "No fields to update." },
+      { status: 400 }
+    );
   }
 
   updates.push("updated_at = ?");
@@ -78,28 +131,8 @@ export async function PUT(
     ...values
   );
 
-  const row = db
-    .prepare(
-      `SELECT p.*, c.name AS category_name, c.color AS category_color
-       FROM posts p LEFT JOIN categories c ON p.category_id = c.id
-       WHERE p.id = ?`
-    )
-    .get(id) as PostRow;
-
-  return NextResponse.json({
-    id: row.id,
-    title: row.title,
-    slug: row.slug,
-    body_markdown: row.body_markdown,
-    body_html: row.body_html,
-    category_id: row.category_id,
-    category_name: row.category_name,
-    category_color: row.category_color,
-    is_draft: Boolean(row.is_draft),
-    published_at: row.published_at,
-    created_at: row.created_at,
-    updated_at: row.updated_at,
-  });
+  const row = fetchPost(db, id);
+  return NextResponse.json(formatPost(row!));
 }
 
 export async function DELETE(

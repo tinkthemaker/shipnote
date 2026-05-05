@@ -32,7 +32,11 @@ async function verifySessionCookie(
   const [payloadB64, hmacHex] = value.split(".");
   if (!payloadB64 || !hmacHex) return false;
 
-  const secret = process.env.SHIPNOTE_SESSION_SECRET;
+  const secret =
+    process.env.SHIPNOTE_SESSION_SECRET ||
+    (process.env.NODE_ENV !== "production"
+      ? "dev-secret-change-me-in-production"
+      : undefined);
   if (!secret) return false;
 
   const key = await crypto.subtle.importKey(

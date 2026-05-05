@@ -57,6 +57,7 @@ export function GET() {
 export async function POST(req: Request) {
   const body = (await req.json()) as {
     title?: string;
+    slug?: string;
     body_markdown?: string;
     category_id?: string;
   };
@@ -73,7 +74,7 @@ export async function POST(req: Request) {
 
   const now = Date.now();
   const id = crypto.randomUUID();
-  const slug = uniqueSlug(title);
+  const slug = uniqueSlug(body.slug?.trim() || title);
   const bodyHtml = renderMarkdown(bodyMarkdown);
 
   const db = getDb();

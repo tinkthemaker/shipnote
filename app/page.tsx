@@ -118,14 +118,7 @@ export default function HomePage({
       </div>
 
       <footer className="mt-16 border-t border-zinc-200 pt-6 text-center text-sm text-zinc-400 dark:border-zinc-800">
-        <a
-          href="https://github.com/anomalyco/shipnote"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hover:text-zinc-600 dark:hover:text-zinc-300"
-        >
-          Powered by Shipnote
-        </a>
+        Powered by Shipnote
       </footer>
     </main>
   );

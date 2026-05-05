@@ -32,6 +32,7 @@ export default function EditPostPage() {
   const [isDraft, setIsDraft] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/categories")
@@ -41,11 +42,12 @@ export default function EditPostPage() {
   }, []);
 
   useEffect(() => {
-    fetch(`/api/admin/posts`)
-      .then((r) => r.json())
-      .then((posts: Post[]) => {
-        const post = posts.find((p) => p.id === postId);
-        if (!post) return;
+    fetch(`/api/admin/posts/${postId}`)
+      .then((r) => {
+        if (!r.ok) throw new Error("not found");
+        return r.json();
+      })
+      .then((post: Post) => {
         setTitle(post.title);
         setSlug(post.slug);
         setBodyMarkdown(post.body_markdown);
@@ -53,7 +55,9 @@ export default function EditPostPage() {
         setIsDraft(post.is_draft);
         setLoaded(true);
       })
-      .catch(() => {});
+      .catch(() => {
+        setNotFound(true);
+      });
   }, [postId]);
 
   const handleTitleChange = useCallback((value: string) => {
@@ -97,6 +101,20 @@ export default function EditPostPage() {
     }
   }
 
+  if (notFound) {
+    return (
+      <div className="mx-auto max-w-3xl px-6 py-8">
+        <p className="text-zinc-500">Post not found.</p>
+        <button
+          onClick={() => router.push("/admin")}
+          className="mt-4 text-sm text-zinc-900 underline dark:text-zinc-100"
+        >
+          Back to admin
+        </button>
+      </div>
+    );
+  }
+
   if (!loaded) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-8">
@@ -115,6 +133,7 @@ export default function EditPostPage() {
         bodyMarkdown={bodyMarkdown}
         saving={saving}
         isNew={false}
+        contentKey={postId}
         onTitleChange={handleTitleChange}
         onSlugChange={setSlug}
         onCategoryIdChange={setCategoryId}

@@ -5,7 +5,17 @@ import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import { Markdown } from "tiptap-markdown";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
+
+type MarkdownStorage = {
+  getMarkdown: () => string;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getMarkdown(editor: any): string {
+  const md = editor.storage?.markdown as MarkdownStorage | undefined;
+  return md?.getMarkdown() ?? "";
+}
 
 type ToolbarProps = {
   editor: ReturnType<typeof useEditor>;
@@ -113,11 +123,13 @@ function Toolbar({ editor }: ToolbarProps) {
 
 type PostEditorProps = {
   initialContent?: string;
+  contentKey?: string;
   onChange: (markdown: string) => void;
 };
 
 export default function PostEditor({
   initialContent = "",
+  contentKey,
   onChange,
 }: PostEditorProps) {
   const editor = useEditor({
@@ -140,8 +152,7 @@ export default function PostEditor({
     ],
     content: initialContent,
     onUpdate: ({ editor: e }) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      onChange((e.storage as any).markdown.getMarkdown());
+      onChange(getMarkdown(e));
     },
     editorProps: {
       attributes: {
@@ -150,6 +161,15 @@ export default function PostEditor({
       },
     },
   });
+
+  useEffect(() => {
+    if (editor && initialContent !== undefined) {
+      const current = getMarkdown(editor);
+      if (current !== initialContent) {
+        editor.commands.setContent(initialContent);
+      }
+    }
+  }, [editor, contentKey]);
 
   return (
     <div className="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700">
