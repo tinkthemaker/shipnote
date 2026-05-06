@@ -133,15 +133,15 @@ Default seed: Feature (#22c55e), Fix (#ef4444), Improvement (#3b82f6), Breaking 
 
 ### 4.5 Email Notifications
 
-- Triggered synchronously on post publish.
-- Sent only to confirmed subscribers.
+- Triggered on post publish (fire-and-forget). The publish API returns immediately; emails are sent in the background. If the process dies mid-send, some subscribers may not receive the email with no retry. This is acceptable for v1 scale (dozens to hundreds of subscribers).
+- Sent only to confirmed subscribers. Emails are sent serially, one per subscriber.
 - Email content: post title as subject, rendered markdown body as HTML email body, unsubscribe link at bottom.
 - Requires one env var: `SHIPNOTE_EMAIL_API_KEY` (for Resend or Postmark — pick one as default, document the other).
 - If no email API key is configured, email notifications are silently skipped. The rest of the app works fine without it.
 
 ### 4.6 MCP Server (`/mcp`)
 
-Speaks SSE transport (the 2026 MCP standard). Exposes two tools:
+Speaks JSON-RPC over HTTP POST (Streamable HTTP pattern — SSE was deprecated in the MCP spec on 2025-03-26). Exposes two tools:
 
 **`draft_changelog_entry`**
 - Input: `title` (string, required), `body` (string, markdown, required), `category` (string, optional — matches by name, falls back to uncategorized).

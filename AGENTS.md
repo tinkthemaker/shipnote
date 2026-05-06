@@ -81,9 +81,10 @@ shipnote/
 │   ├── markdown.ts         # Markdown -> sanitized HTML
 │   └── mcp/                # MCP server implementation
 ├── widget/
-│   └── widget.js           # Vanilla JS widget; built and served at /widget.js
+│   └── widget.js           # Vanilla JS widget source (also copied to public/widget.js)
 ├── public/
-│   └── demo.html           # Fake Acme App for widget testing (served at /demo)
+│   ├── demo.html           # Fake Acme App for widget testing (served at /demo)
+│   └── widget.js           # Production widget (static asset, also in widget/)
 ├── data/                   # Gitignored. SQLite file lives here in dev.
 ├── SHIPNOTE.md             # Product spec
 ├── TASKS.md                # Build plan (slices)
@@ -102,5 +103,9 @@ shipnote/
 - Shadow DOM in the widget needs styles attached inside the shadow root, not the document head, or they will be stripped by host-page CSS resets.
 - Resend will reject `from` addresses on unverified domains. In dev, use the provider's default test sender.
 - `categories.order` from `SHIPNOTE.md` Section 3 is implemented as `categories.display_order` because `order` is a SQL reserved keyword. Use `display_order` in all queries and code.
+- SHIPNOTE.md §4.6 says "SSE transport" for MCP, but the implementation uses JSON-RPC over POST (Streamable HTTP pattern). SSE was deprecated in the MCP spec on 2025-03-26. The hand-rolled handler in `lib/mcp/handler.ts` replaces the SDK entirely — do not re-add `@modelcontextprotocol/sdk` unless switching to a transport that needs it.
+- `widget/widget.js` is the source file; it is also copied to `public/widget.js` so Next.js serves it as a static asset (works in Docker standalone). If you edit `widget/widget.js`, copy it to `public/` or the dev server will serve stale content.
+- Email notifications are fire-and-forget on publish (`sendNotificationEmails` runs async, response returns immediately). If the process dies mid-send, some subscribers won't get the email with no retry. This is acceptable for v1 scale (dozens to hundreds of subscribers). Emails are sent serially in a loop — not batched.
+- `/demo` uses a `rewrite` (not a `redirect`) in `next.config.mjs`. A permanent redirect would cache aggressively in browsers and make it hard to replace with a real page later.
 
 If you discover another sharp edge, append it here so the next agent does not re-discover it.
